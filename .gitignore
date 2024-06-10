@@ -1,0 +1,7 @@
+clean/*
+final/*
+spans/*
+json/*
+meta/*
+images/*
+node_modules/*
