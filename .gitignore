@@ -1,6 +1,8 @@
 clean/*
 final/*
+!final/.gitkeep
 spans/*
+!spans/.gitkeep
 json/*
 meta/*
 images/*
