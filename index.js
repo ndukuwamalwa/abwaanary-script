@@ -522,7 +522,7 @@ const composeJson = (file) => {
     { type: 'v', name: 'Verb' },
     { type: 'abbr', name: 'Abbreviation' },
     { type: 'exclam', name: 'Exclamation' },
-    { type: 'comb.', name: 'Prefix' }
+    { type: 'comb.', name: 'Prefix' },
   ];
 
   const getTenses = (tenses) => {
@@ -751,7 +751,12 @@ const composeJson = (file) => {
       }
     }
 
-    return { meanings, forms: wordForms.filter((f) => f.form && f.form.trim().length > 0 && f.form !== '&') };
+    return {
+      meanings,
+      forms: wordForms.filter(
+        (f) => f.form && f.form.trim().length > 0 && f.form !== '&'
+      ),
+    };
   };
 
   for (const p of paragraphs) {
@@ -827,7 +832,11 @@ const composeJson = (file) => {
       }
       p[0].text = combined;
       mainType = 'Abbreviation';
-    } else if (text.startsWith('naanaysta gobolka') || text.startsWith('gobol') || text.startsWith('waddan')) {
+    } else if (
+      text.startsWith('naanaysta gobolka') ||
+      text.startsWith('gobol') ||
+      text.startsWith('waddan')
+    ) {
       mainType = 'Noun';
     } else if (text.startsWith('past of')) {
       mainType = 'Verb';
@@ -932,7 +941,7 @@ const combineAll = () => {
     const cleanMeanings = [];
     if (!word.meanings) {
       console.log(word);
-      throw new Error;
+      throw new Error();
     }
     word.meanings.forEach((m) => {
       const exist = cleanMeanings.find((om) => om.meaning === m.meaning);
@@ -945,7 +954,9 @@ const combineAll = () => {
     const cleanForms = [];
     if (word.forms && word.forms.length > 0) {
       word.forms.forEach((form) => {
-        const exist = cleanForms.find((f) => f.form == form.form && f.type === form.type);
+        const exist = cleanForms.find(
+          (f) => f.form == form.form && f.type === form.type
+        );
         if (!exist) {
           cleanForms.push(form);
         }
@@ -963,32 +974,38 @@ const combineAll = () => {
       finalOutput.push(word);
     }
   }
-  const getLinkedWords = (text = '') => {
-    const linkedText = (part) => part.replace('eeg ', '').replace('.', '').split('(n.')[0].split('(sense ')[0].trim();
-    if (!text.includes('eeg')) {
+  const extractLinkedWords = (linkingWord, text = '') => {
+    const linkedText = (part) =>
+      part
+        .replace(`${linkingWord} `, '')
+        .replace('.', '')
+        .split('(n.')[0]
+        .split('(sense ')[0]
+        .trim();
+    if (!text.includes(`${linkingWord}`)) {
       return { text, words: [] };
     }
 
-    if (text.startsWith('eeg ')) {
-      return { text: '', words: [linkedText(text)]};
+    if (text.startsWith(`${linkingWord} `)) {
+      return { text: '', words: [linkedText(text)] };
     }
 
-    if (text.split(', eeg').length > 1) {
-      const parts = text.split(', eeg');
+    if (text.split(`, ${linkingWord}`).length > 1) {
+      const parts = text.split(`, ${linkingWord}`);
 
-      return { text: parts[0].trim(), words: [linkedText(parts[1])]};
+      return { text: parts[0].trim(), words: [linkedText(parts[1])] };
     }
 
-    if (text.split(' (eeg ').length > 1) {
-      const parts = text.split(' (eeg ');
+    if (text.split(` (${linkingWord} `).length > 1) {
+      const parts = text.split(` (${linkingWord} `);
       const [linked, ...rest] = parts[1].split(')');
       text = parts[0] + rest.join(')');
 
       return { text: text.trim(), words: [linkedText(linked)] };
     }
 
-    if (text.split(' eeg ').length > 1) {
-      const parts = text.split(' eeg ');
+    if (text.split(` ${linkingWord} `).length > 1) {
+      const parts = text.split(` ${linkingWord} `);
       const [linked, ...rest] = parts[1].split('.');
       text = parts[0] + rest.join('.');
 
@@ -996,6 +1013,37 @@ const combineAll = () => {
     }
 
     return { text, words: [] };
+  };
+
+  const getLinkedWords = (text = '') => {
+    const joiningWords = [
+      'eeg',
+      'waxaa kale oo looyaqaan',
+      'waxaa kale oo loogu yeeraa',
+      'waxaa kale oo loo yaqaan',
+      'kale loogu yeeraa',
+      'barbardhig',
+      'Waxaa kale oo loo yaqaan',
+      'Waxaa kale oo looyaqaan',
+      'Waxaa kale oo loogu yeeraa',
+      'Barbardhig',
+      'waxaa kale oo looyaqaan,',
+      'Waxaa kale oo loo yaqaan:',
+      'waxaa kale oo loo yaqaan:',
+      'Barbardhig,'
+    ];
+
+    const words = [];
+    let remaining = text;
+
+    joiningWords.forEach((word) => {
+      const { text: newText, words: newLinked } = extractLinkedWords(word, remaining);
+
+      words.push(...newLinked);
+      remaining = newText;
+    });
+
+    return { text: remaining, words };
   };
 
   finalOutput.forEach((word) => {
@@ -1006,7 +1054,7 @@ const combineAll = () => {
       meaning.meaning = text;
 
       const emptyExamplesIndices = [];
-      
+
       meaning?.examples?.forEach((example, i) => {
         const { words, text } = getLinkedWords(example);
         linkedWords.push(...words);
@@ -1019,7 +1067,9 @@ const combineAll = () => {
       });
 
       if (meaning?.examples?.length) {
-        meaning.examples = meaning.examples.filter((_, i) => !emptyExamplesIndices.includes(i));
+        meaning.examples = meaning.examples.filter(
+          (_, i) => !emptyExamplesIndices.includes(i)
+        );
       }
 
       if (linkedWords.length > 0) {
@@ -1029,9 +1079,13 @@ const combineAll = () => {
   });
   console.log(`Final word count: ${finalOutput.length}`);
 
-  writeFileSync(join(__dirname, 'final', 'words.json'), JSON.stringify(finalOutput), {
-    encoding: 'utf8',
-  });
+  writeFileSync(
+    join(__dirname, 'final', 'words.json'),
+    JSON.stringify(finalOutput),
+    {
+      encoding: 'utf8',
+    }
+  );
 };
 
 function init() {
