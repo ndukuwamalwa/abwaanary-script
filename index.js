@@ -381,6 +381,10 @@ const extract = (file) => {
     let index = 0;
 
     for (const span of paragraph.childNodes) {
+      if (!span.textContent?.trim()) {
+        continue;
+      }
+
       if (['img'].includes(span.rawTagName.toLowerCase())) {
         continue;
       }
