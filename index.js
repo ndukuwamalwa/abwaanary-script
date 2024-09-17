@@ -138,6 +138,14 @@ const CLASS_MAPPINGS = {
     INCOMPLETE_DEF_CLASS: '.not-set',
     SUPERSCRIPT_CLASS: '.c10',
   },
+  'abwaanary17.html': {
+    ACTUAL_WORD_CLASS: '.c1',
+    PAGE_TOP_TEXT_CLASS: '.not-set',
+    MAIN_LETTER_TEXT_CLASS: '.not-set',
+    REPEATED_WORD_CLASS: '.not-set',
+    INCOMPLETE_DEF_CLASS: '.not-set',
+    SUPERSCRIPT_CLASS: '.c10',
+  },
 };
 
 const extract = (file) => {
